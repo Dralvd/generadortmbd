@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Código para Página de Película</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Scripts de Google API -->
+    <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
+    <script async defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .code-block {
+            background-color: #1e293b; /* slate-800 */
+            color: #e2e8f0; /* slate-200 */
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            position: relative;
+        }
+        .copy-button {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background-color: #334155; /* slate-700 */
+            color: #cbd5e1; /* slate-300 */
+            border: none;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+        .copy-button:hover {
+            background-color: #475569; /* slate-600 */
+        }
+        .custom-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 600;
+            transition: background-color 0.3s;
+            border: none;
+            white-space: nowrap;
+        }
+        .custom-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        #searchResultsContainer {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1rem;
+            max-height: 340px; /* Altura máxima para una fila */
+            overflow-y: auto;   /* Scroll vertical si el contenido excede la altura */
+            padding: 0.5rem;      /* Pequeño padding para que se vea mejor */
+            background-color: #1e293b; /* Fondo ligeramente diferente */
+            border-radius: 0.5rem;
+        }
+        .search-result-item {
+            background-color: #334155;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            text-align: center;
+        }
+        .search-result-item img {
+            width: 100%;
+            height: auto;
+            aspect-ratio: 2/3;
+            object-fit: cover;
+        }
+        .search-result-item p {
+            padding: 0.5rem;
+            font-size: 0.875rem;
+            min-height: 50px;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-white p-4 sm:p-6 md:p-8">
+
+    <div class="max-w-4xl mx-auto">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl sm:text-4xl font-bold text-sky-400">Generador de Código de Película</h1>
+            <p class="text-slate-400 mt-2">Introduce los datos para generar el código o publicar en Blogger.</p>
+        </header>
+
+        <!-- Sección de búsqueda de TMDb -->
+        <div id="tmdbSearchSection" class="bg-slate-800 p-6 rounded-lg shadow-lg mb-8 space-y-4">
+            <h2 class="text-xl font-semibold text-teal-400 border-b border-teal-500 pb-2">Buscador de Películas (TMDb)</h2>
+            <div>
+                <label for="tmdbApiKey" class="block text-sm font-medium text-slate-300 mb-2">Tu API Key de TMDb</label>
+                <div class="flex gap-2">
+                    <input type="password" id="tmdbApiKey" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white" placeholder="Introduce tu API Key de TMDb">
+                    <button id="save_tmdb_key_button" class="custom-btn bg-teal-600 hover:bg-teal-700 text-white">Guardar</button>
+                </div>
+            </div>
+            <div>
+                <label for="movieSearchInput" class="block text-sm font-medium text-slate-300 mb-2">Buscar Película por Título</label>
+                <div class="flex gap-2">
+                    <input type="text" id="movieSearchInput" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white" placeholder="Ej: The Matrix">
+                    <button id="searchMovieBtn" class="custom-btn bg-sky-600 hover:bg-sky-700 text-white">Buscar</button>
+                </div>
+            </div>
+            <div id="searchResultsContainer" class="mt-4"></div>
+        </div>
+
+        <!-- Formulario para ingresar los datos -->
+        <form id="movieForm" class="bg-slate-800 p-6 rounded-lg shadow-lg space-y-6">
+            <div>
+                <label for="postTitle" class="block text-sm font-medium text-slate-300 mb-2">Título de la Entrada</label>
+                <input type="text" id="postTitle" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white focus:ring-2 focus:ring-sky-500" placeholder="Ej: Nombre de la Película (Año)" required>
+            </div>
+            <div>
+                <label for="imageUrl" class="block text-sm font-medium text-slate-300 mb-2">URL de la Imagen (Póster)</label>
+                <input type="url" id="imageUrl" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white focus:ring-2 focus:ring-sky-500" placeholder="https://ejemplo.com/poster.jpg" required>
+            </div>
+            <div>
+                <label for="synopsis" class="block text-sm font-medium text-slate-300 mb-2">Sinopsis</label>
+                <textarea id="synopsis" rows="4" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white focus:ring-2 focus:ring-sky-500" placeholder="Escribe aquí la sinopsis..." required></textarea>
+            </div>
+            <div>
+                <label for="server1" class="block text-sm font-medium text-slate-300 mb-2">Embed del Servidor 1</label>
+                <input type="url" id="server1" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white focus:ring-2 focus:ring-sky-500" placeholder="https://servidor1.com/embed/..." required>
+            </div>
+            <div>
+                <label for="server2" class="block text-sm font-medium text-slate-300 mb-2">Embed del Servidor 2</label>
+                <input type="url" id="server2" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white focus:ring-2 focus:ring-sky-500" placeholder="https://servidor2.com/embed/..." required>
+            </div>
+            <div>
+                <label for="downloadUrl" class="block text-sm font-medium text-slate-300 mb-2">URL de Descarga</label>
+                <input type="url" id="downloadUrl" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white focus:ring-2 focus:ring-sky-500" placeholder="https://ejemplo.com/pelicula.mp4" required>
+            </div>
+             <div>
+                <label for="postLabels" class="block text-sm font-medium text-slate-300 mb-2">Etiquetas (separadas por comas)</label>
+                <input type="text" id="postLabels" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white focus:ring-2 focus:ring-sky-500" placeholder="Ej: Acción, Aventura, Estreno">
+            </div>
+            <div class="flex justify-end">
+                <button type="button" id="generateCodeBtn" class="bg-sky-600 hover:bg-sky-700 text-white custom-btn">
+                    Generar Código HTML
+                </button>
+            </div>
+        </form>
+
+        <!-- Sección de publicación en Blogger -->
+        <div id="bloggerSection" class="bg-slate-800 p-6 rounded-lg shadow-lg mt-8 space-y-4">
+            <h2 class="text-xl font-semibold text-amber-400 border-b border-amber-500 pb-2">Publicar en Blogger (Avanzado)</h2>
+            <p class="text-sm text-slate-400">Necesitas credenciales de la API de Google. <a href="https://developers.google.com/blogger/docs/3.0/using#GettingStarted" target="_blank" rel="noopener noreferrer" class="text-sky-400 hover:underline">Lee la guía de Google aquí.</a></p>
+            <div>
+                <label for="apiKey" class="block text-sm font-medium text-slate-300 mb-2">Tu Google API Key</label>
+                <input type="password" id="apiKey" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white" placeholder="Introduce tu API Key">
+            </div>
+            <div>
+                <label for="clientId" class="block text-sm font-medium text-slate-300 mb-2">Tu Google Client ID</label>
+                <input type="password" id="clientId" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white" placeholder="Introduce tu Client ID">
+            </div>
+            <div>
+                <label for="blogId" class="block text-sm font-medium text-slate-300 mb-2">ID de tu Blog de Blogger</label>
+                <input type="text" id="blogId" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white" placeholder="El número ID de tu blog">
+            </div>
+            <div class="flex flex-wrap items-center justify-end gap-2 pt-4">
+                 <button id="save_credentials_button" class="custom-btn bg-green-600 hover:bg-green-700 text-white">Guardar Credenciales</button>
+                 <button id="clear_credentials_button" class="custom-btn bg-red-600 hover:bg-red-700 text-white">Borrar Credenciales</button>
+                 <button id="authorize_button" class="custom-btn bg-blue-600 hover:bg-blue-700 text-white" disabled>Autorizar</button>
+                 <button id="signout_button" class="custom-btn bg-gray-600 hover:bg-gray-700 text-white" style="display: none;">Cerrar Sesión</button>
+                 <button id="publish_button" class="custom-btn bg-amber-600 hover:bg-amber-700 text-white" disabled>Publicar en Blogger</button>
+            </div>
+            <div id="statusMessage" class="text-slate-400 text-sm h-4 mt-2 text-right"></div>
+        </div>
+
+        <!-- Contenedor para el CÓDIGO generado -->
+        <div id="outputContainer" class="mt-8 hidden">
+            <h2 class="text-2xl font-semibold mb-4 text-sky-400">Código HTML Generado</h2>
+            <div class="code-block">
+                <button id="copyButton" class="copy-button">Copiar</button>
+                <code id="outputCode"></code>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- VARIABLES GLOBALES ---
+        let tokenClient;
+        let gapiReady = false;
+        let gisReady = false;
+
+        // --- ELEMENTOS DEL DOM ---
+        const generateCodeBtn = document.getElementById('generateCodeBtn');
+        const outputContainer = document.getElementById('outputContainer');
+        const outputCode = document.getElementById('outputCode');
+        const copyButton = document.getElementById('copyButton');
+        
+        const authorizeButton = document.getElementById('authorize_button');
+        const signoutButton = document.getElementById('signout_button');
+        const publishButton = document.getElementById('publish_button');
+        const statusMessage = document.getElementById('statusMessage');
+        const saveCredentialsButton = document.getElementById('save_credentials_button');
+        const clearCredentialsButton = document.getElementById('clear_credentials_button');
+        
+        // TMDb Elements
+        const saveTmdbKeyButton = document.getElementById('save_tmdb_key_button');
+        const searchMovieBtn = document.getElementById('searchMovieBtn');
+        const searchResultsContainer = document.getElementById('searchResultsContainer');
+
+        // --- FUNCIÓN PARA GENERAR HTML ---
+        function generateHtmlContent() {
+            const imageUrl = document.getElementById('imageUrl').value;
+            const synopsis = document.getElementById('synopsis').value;
+            const server1 = document.getElementById('server1').value;
+            const server2 = document.getElementById('server2').value;
+            const downloadUrl = document.getElementById('downloadUrl').value;
+
+            if (!imageUrl || !synopsis || !server1 || !server2 || !downloadUrl) {
+                alert('Por favor, completa todos los campos del formulario de la película.');
+                return null;
+            }
+
+            return `
+<div class="separator" style="clear: both;">
+    <a href="${imageUrl}" style="display: block; padding: 1em 0; text-align: center; ">
+        <img alt="Póster de la película" border="0" height="200" data-original-height="1484" data-original-width="1000" src="${imageUrl}" onerror="this.onerror=null;this.src='https://placehold.co/1000x1484/1c1c1e/ffffff?text=Error+al+cargar+la+imagen';">
+    </a>
+</div>
+<div class="ctncapitulo">
+<ul class="tabs"><li><a href="#tab1">SERVIDOR 1</a></li><li><a href="#tab2">SERVIDOR 2</a></li><li><a href="${downloadUrl}">DESCARGAR</a></li></ul>
+    <div class="contenedor_tab">
+        <div class="contenido_tab" id="tab1">
+            <iframe allowfullscreen="" frameborder="0" height="350" src="${server1}" style="border-radius: 12px;" width="100%"></iframe>
+        </div>
+        <div class="contenido_tab" id="tab2">
+            <center>
+                <iframe allowfullscreen="" frameborder="0" height="350" src="${server2}" style="border-radius: 12px;" width="100%"></iframe>
+            </center>
+        </div>
+        <div class="separator" style="clear: both; text-align: center;">
+            <span style="text-align: left;"><span style="font-family: arial; font-size: medium;"></span></span>
+        </div>
+    </div>
+    <b><div style="text-align: center;"><b>&nbsp;Sinopsis:</b></div></b>
+    <div class="separator" style="clear: both; text-align: center;">
+        <span style="text-align: left;"><span style="font-family: arial; font-size: medium;">${synopsis}</span></span>
+    </div>
+    <div class="separator" style="clear: both; text-align: center;"></div>
+</div>`;
+        }
+
+        // --- LÓGICA DEL GENERADOR DE CÓDIGO ---
+        generateCodeBtn.addEventListener('click', function() {
+            const generatedHtml = generateHtmlContent();
+            if (generatedHtml) {
+                outputCode.textContent = generatedHtml.trim();
+                outputContainer.classList.remove('hidden');
+                outputContainer.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+
+        // --- LÓGICA DEL BOTÓN COPIAR (MÉTODO COMPATIBLE) ---
+        copyButton.addEventListener('click', function() {
+            const textToCopy = outputCode.textContent;
+            
+            // Crear un textarea temporal para copiar al portapapeles
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = textToCopy;
+            // Hacerlo invisible
+            tempTextArea.style.position = 'absolute';
+            tempTextArea.style.left = '-9999px';
+            document.body.appendChild(tempTextArea);
+            
+            tempTextArea.select();
+            tempTextArea.setSelectionRange(0, 99999); // Para dispositivos móviles
+
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    copyButton.textContent = '¡Copiado!';
+                } else {
+                    copyButton.textContent = 'Error';
+                }
+            } catch (err) {
+                console.error('Error al intentar copiar el texto: ', err);
+                copyButton.textContent = 'Error';
+            }
+
+            document.body.removeChild(tempTextArea);
+
+            setTimeout(() => {
+                copyButton.textContent = 'Copiar';
+            }, 2000);
+        });
+
+        // --- LÓGICA DE CREDENCIALES (LocalStorage) ---
+        function saveCredentials() {
+            const apiKey = document.getElementById('apiKey').value;
+            const clientId = document.getElementById('clientId').value;
+            const blogId = document.getElementById('blogId').value;
+
+            if (apiKey && clientId && blogId) {
+                localStorage.setItem('bloggerApiKey', apiKey);
+                localStorage.setItem('bloggerClientId', clientId);
+                localStorage.setItem('bloggerBlogId', blogId);
+                statusMessage.textContent = 'Credenciales de Blogger guardadas.';
+            } else {
+                alert('Por favor, completa los tres campos de credenciales de Blogger para guardar.');
+            }
+        }
+
+        function loadCredentials() {
+            const apiKey = localStorage.getItem('bloggerApiKey');
+            const clientId = localStorage.getItem('bloggerClientId');
+            const blogId = localStorage.getItem('bloggerBlogId');
+
+            if (apiKey && clientId && blogId) {
+                document.getElementById('apiKey').value = apiKey;
+                document.getElementById('clientId').value = clientId;
+                document.getElementById('blogId').value = blogId;
+            }
+        }
+
+        function clearCredentials() {
+            if (confirm('¿Estás seguro de que quieres borrar las credenciales de Blogger guardadas?')) {
+                localStorage.removeItem('bloggerApiKey');
+                localStorage.removeItem('bloggerClientId');
+                localStorage.removeItem('bloggerBlogId');
+                document.getElementById('apiKey').value = '';
+                document.getElementById('clientId').value = '';
+                document.getElementById('blogId').value = '';
+                statusMessage.textContent = 'Credenciales de Blogger borradas.';
+            }
+        }
+
+        function saveTmdbKey() {
+            const tmdbKey = document.getElementById('tmdbApiKey').value;
+            if (tmdbKey) {
+                localStorage.setItem('tmdbApiKey', tmdbKey);
+                alert('Clave de TMDb guardada.');
+            } else {
+                alert('Por favor, introduce una clave de API de TMDb.');
+            }
+        }
+
+        function loadTmdbKey() {
+            const tmdbKey = localStorage.getItem('tmdbApiKey');
+            if (tmdbKey) {
+                document.getElementById('tmdbApiKey').value = tmdbKey;
+            }
+        }
+
+        // --- LÓGICA DE LA API DE TMDb ---
+        async function searchMovie() {
+            const query = document.getElementById('movieSearchInput').value;
+            const apiKey = document.getElementById('tmdbApiKey').value;
+            if (!apiKey) {
+                alert('Por favor, introduce tu API Key de TMDb primero.');
+                return;
+            }
+            if (!query) {
+                alert('Por favor, introduce un título de película para buscar.');
+                return;
+            }
+
+            searchResultsContainer.innerHTML = '<p class="col-span-full text-center">Buscando...</p>';
+            const url = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(query)}&language=es-ES`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                displaySearchResults(data.results);
+            } catch (error) {
+                console.error('Error buscando en TMDb:', error);
+                searchResultsContainer.innerHTML = '<p class="col-span-full text-center text-red-500">Error al buscar.</p>';
+            }
+        }
+
+        function displaySearchResults(movies) {
+            searchResultsContainer.innerHTML = '';
+            if (movies.length === 0) {
+                searchResultsContainer.innerHTML = '<p class="col-span-full text-center">No se encontraron resultados.</p>';
+                return;
+            }
+
+            movies.forEach(movie => {
+                const movieEl = document.createElement('div');
+                movieEl.classList.add('search-result-item');
+                
+                const posterPath = movie.poster_path ? `https://image.tmdb.org/t/p/w200${movie.poster_path}` : 'https://placehold.co/200x300/1c1c1e/ffffff?text=Sin+P%C3%B3ster';
+
+                movieEl.innerHTML = `
+                    <img src="${posterPath}" alt="Póster de ${movie.title}">
+                    <p>${movie.title} (${movie.release_date ? movie.release_date.substring(0, 4) : 'N/A'})</p>
+                    <button class="custom-btn bg-teal-600 hover:bg-teal-700 text-white w-full" onclick="selectMovie(${movie.id})">Seleccionar</button>
+                `;
+                searchResultsContainer.appendChild(movieEl);
+            });
+        }
+
+        async function selectMovie(movieId) {
+            const apiKey = document.getElementById('tmdbApiKey').value;
+            const url = `https://api.themoviedb.org/3/movie/${movieId}?api_key=${apiKey}&language=es-ES`;
+
+            try {
+                const response = await fetch(url);
+                const movie = await response.json();
+                
+                // Rellenar el formulario
+                const year = movie.release_date ? `(${movie.release_date.substring(0, 4)})` : '';
+                document.getElementById('postTitle').value = `${movie.title} ${year}`;
+                document.getElementById('imageUrl').value = movie.poster_path ? `https://image.tmdb.org/t/p/original${movie.poster_path}` : '';
+                document.getElementById('synopsis').value = movie.overview || 'No hay sinopsis disponible.';
+                document.getElementById('postLabels').value = movie.genres ? movie.genres.map(g => g.name).join(', ') : '';
+
+                searchResultsContainer.innerHTML = ''; // Limpiar resultados
+                document.getElementById('movieSearchInput').value = '';
+                alert(`'${movie.title}' seleccionada. Revisa los campos y completa los que faltan.`);
+
+            } catch (error) {
+                console.error('Error obteniendo detalles de la película:', error);
+                alert('No se pudieron obtener los detalles de la película.');
+            }
+        }
+
+
+        // --- LÓGICA DE LA API DE BLOGGER ---
+        function gapiLoaded() {
+            gapi.load('client', () => {
+                gapiReady = true;
+                maybeEnableAuthButton();
+            });
+        }
+        
+        function gisLoaded() {
+            gisReady = true;
+            maybeEnableAuthButton();
+        }
+
+        function maybeEnableAuthButton() {
+            if (gapiReady && gisReady) {
+                authorizeButton.disabled = false;
+            }
+        }
+
+        async function handleAuthClick() {
+            const apiKey = document.getElementById('apiKey').value;
+            const clientId = document.getElementById('clientId').value;
+
+            if (!apiKey || !clientId) {
+                alert('Por favor, introduce tu API Key y Client ID de Google antes de autorizar.');
+                return;
+            }
+
+            statusMessage.textContent = 'Inicializando servicios de Google...';
+
+            await gapi.client.init({
+                apiKey: apiKey,
+                discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/blogger/v3/rest'],
+            });
+
+            tokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: clientId,
+                scope: 'https://www.googleapis.com/auth/blogger',
+                callback: async (resp) => {
+                    if (resp.error !== undefined) {
+                        throw (resp);
+                    }
+                    updateSigninStatus(true);
+                },
+            });
+
+            statusMessage.textContent = 'Abriendo ventana de autorización...';
+            
+            if (gapi.client.getToken() === null) {
+                tokenClient.requestAccessToken({prompt: 'consent'});
+            } else {
+                tokenClient.requestAccessToken({prompt: ''});
+            }
+        }
+
+        function handleSignoutClick() {
+            const token = gapi.client.getToken();
+            if (token !== null) {
+                google.accounts.oauth2.revoke(token.access_token);
+                gapi.client.setToken('');
+                updateSigninStatus(false);
+            }
+        }
+
+        function updateSigninStatus(isSignedIn) {
+            if (isSignedIn) {
+                authorizeButton.style.display = 'none';
+                signoutButton.style.display = 'block';
+                publishButton.disabled = false;
+                statusMessage.textContent = "Autorización exitosa.";
+            } else {
+                authorizeButton.style.display = 'block';
+                signoutButton.style.display = 'none';
+                publishButton.disabled = true;
+                statusMessage.textContent = "Necesitas autorizar para poder publicar.";
+            }
+        }
+
+        async function publishPost() {
+            publishButton.disabled = true;
+            statusMessage.textContent = "Publicando...";
+            
+            const blogId = document.getElementById('blogId').value;
+            const title = document.getElementById('postTitle').value;
+            const labels = document.getElementById('postLabels').value.split(',').map(s => s.trim()).filter(Boolean);
+            
+            if (!blogId || !title) {
+                alert('El Título de la entrada y el ID del Blog son obligatorios para publicar.');
+                statusMessage.textContent = "Error: Faltan datos.";
+                publishButton.disabled = false;
+                return;
+            }
+
+            const content = generateHtmlContent();
+            if (!content) {
+                 statusMessage.textContent = "Error: No se pudo generar el contenido.";
+                 publishButton.disabled = false;
+                 return;
+            }
+            
+            try {
+                const response = await gapi.client.blogger.posts.insert({
+                    'blogId': blogId,
+                    'resource': {
+                        'title': title,
+                        'content': content,
+                        'labels': labels
+                    }
+                });
+                console.log('Post created:', response.result);
+                statusMessage.textContent = `¡Publicado con éxito! Ver entrada: ${response.result.url}`;
+            } catch (err) {
+                console.error('Execute error', err);
+                statusMessage.textContent = `Error al publicar: ${err.result.error.message}`;
+            } finally {
+                 publishButton.disabled = false;
+            }
+        }
+        
+        // --- EVENT LISTENERS ---
+        authorizeButton.addEventListener('click', handleAuthClick);
+        signoutButton.addEventListener('click', handleSignoutClick);
+        publishButton.addEventListener('click', publishPost);
+        saveCredentialsButton.addEventListener('click', saveCredentials);
+        clearCredentialsButton.addEventListener('click', clearCredentials);
+        saveTmdbKeyButton.addEventListener('click', saveTmdbKey);
+        searchMovieBtn.addEventListener('click', searchMovie);
+        
+        // --- INICIALIZACIÓN ---
+        window.addEventListener('load', () => {
+            loadCredentials();
+            loadTmdbKey();
+        });
+        
+    </script>
+</body>
+</html>
