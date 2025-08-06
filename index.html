@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador de Código para Página de Película</title>
+    <title>Generador de Código para Películas y Series</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Scripts de Google API -->
@@ -83,13 +83,26 @@
 
     <div class="max-w-4xl mx-auto">
         <header class="text-center mb-8">
-            <h1 class="text-3xl sm:text-4xl font-bold text-sky-400">Generador de Código de Película</h1>
-            <p class="text-slate-400 mt-2">Introduce los datos para generar el código o publicar en Blogger.</p>
+            <h1 class="text-3xl sm:text-4xl font-bold text-sky-400">Generador de Contenido</h1>
+            <p class="text-slate-400 mt-2">Crea código para tus entradas de películas o series.</p>
         </header>
+
+        <!-- Selector de Tipo -->
+        <div class="mb-8 bg-slate-800 p-4 rounded-lg flex justify-center gap-4">
+            <label class="font-medium text-slate-300">Tipo de Contenido:</label>
+            <div>
+                <input type="radio" id="typeMovie" name="contentType" value="movie" checked>
+                <label for="typeMovie">Película</label>
+            </div>
+            <div>
+                <input type="radio" id="typeSeries" name="contentType" value="tv">
+                <label for="typeSeries">Serie</label>
+            </div>
+        </div>
 
         <!-- Sección de búsqueda de TMDb -->
         <div id="tmdbSearchSection" class="bg-slate-800 p-6 rounded-lg shadow-lg mb-8 space-y-4">
-            <h2 class="text-xl font-semibold text-teal-400 border-b border-teal-500 pb-2">Buscador de Películas (TMDb)</h2>
+            <h2 class="text-xl font-semibold text-teal-400 border-b border-teal-500 pb-2">Buscador (TMDb)</h2>
             <div>
                 <label for="tmdbApiKey" class="block text-sm font-medium text-slate-300 mb-2">Tu API Key de TMDb</label>
                 <div class="flex gap-2">
@@ -98,17 +111,17 @@
                 </div>
             </div>
             <div>
-                <label for="movieSearchInput" class="block text-sm font-medium text-slate-300 mb-2">Buscar Película por Título</label>
+                <label for="searchInput" class="block text-sm font-medium text-slate-300 mb-2">Buscar por Título</label>
                 <div class="flex gap-2">
-                    <input type="text" id="movieSearchInput" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white" placeholder="Ej: The Matrix">
-                    <button id="searchMovieBtn" class="custom-btn bg-sky-600 hover:bg-sky-700 text-white">Buscar</button>
+                    <input type="text" id="searchInput" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white" placeholder="Ej: The Matrix / The Simpsons">
+                    <button id="searchBtn" class="custom-btn bg-sky-600 hover:bg-sky-700 text-white">Buscar</button>
                 </div>
             </div>
             <div id="searchResultsContainer" class="mt-4"></div>
         </div>
 
         <!-- Formulario para ingresar los datos -->
-        <form id="movieForm" class="bg-slate-800 p-6 rounded-lg shadow-lg space-y-6">
+        <form id="contentForm" class="bg-slate-800 p-6 rounded-lg shadow-lg space-y-6">
             <div>
                 <label for="postTitle" class="block text-sm font-medium text-slate-300 mb-2">Título de la Entrada</label>
                 <input type="text" id="postTitle" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white focus:ring-2 focus:ring-sky-500" placeholder="Ej: Nombre de la Película (Año)" required>
@@ -118,20 +131,33 @@
                 <input type="url" id="imageUrl" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white focus:ring-2 focus:ring-sky-500" placeholder="https://ejemplo.com/poster.jpg" required>
             </div>
             <div>
+                <label for="imageAltText" class="block text-sm font-medium text-slate-300 mb-2">Texto Alternativo para la Imagen (SEO)</label>
+                <textarea id="imageAltText" rows="2" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white focus:ring-2 focus:ring-sky-500" placeholder="Títulos alternativos para optimizar la búsqueda..."></textarea>
+            </div>
+            <div>
                 <label for="synopsis" class="block text-sm font-medium text-slate-300 mb-2">Sinopsis</label>
                 <textarea id="synopsis" rows="4" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white focus:ring-2 focus:ring-sky-500" placeholder="Escribe aquí la sinopsis..." required></textarea>
             </div>
-            <div>
-                <label for="server1" class="block text-sm font-medium text-slate-300 mb-2">Embed del Servidor 1</label>
-                <input type="url" id="server1" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white focus:ring-2 focus:ring-sky-500" placeholder="https://servidor1.com/embed/..." required>
+             <div id="movieFields">
+                <div>
+                    <label for="server1" class="block text-sm font-medium text-slate-300 mb-2">Embed del Servidor 1</label>
+                    <input type="url" id="server1" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white focus:ring-2 focus:ring-sky-500" placeholder="https://servidor1.com/embed/..." required>
+                </div>
+                <div>
+                    <label for="server2" class="block text-sm font-medium text-slate-300 mb-2">Embed del Servidor 2</label>
+                    <input type="url" id="server2" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white focus:ring-2 focus:ring-sky-500" placeholder="https://servidor2.com/embed/..." required>
+                </div>
+                <div>
+                    <label for="downloadUrl" class="block text-sm font-medium text-slate-300 mb-2">URL de Descarga</label>
+                    <input type="url" id="downloadUrl" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white focus:ring-2 focus:ring-sky-500" placeholder="https://ejemplo.com/pelicula.mp4" required>
+                </div>
             </div>
-            <div>
-                <label for="server2" class="block text-sm font-medium text-slate-300 mb-2">Embed del Servidor 2</label>
-                <input type="url" id="server2" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white focus:ring-2 focus:ring-sky-500" placeholder="https://servidor2.com/embed/..." required>
-            </div>
-            <div>
-                <label for="downloadUrl" class="block text-sm font-medium text-slate-300 mb-2">URL de Descarga</label>
-                <input type="url" id="downloadUrl" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white focus:ring-2 focus:ring-sky-500" placeholder="https://ejemplo.com/pelicula.mp4" required>
+            <div id="seriesFields" class="hidden space-y-4">
+                 <h3 class="text-lg font-semibold text-slate-300 border-b border-slate-600 pb-2">Episodios</h3>
+                 <div id="episodesContainer" class="space-y-3">
+                     <!-- Los campos de episodios se añadirán aquí -->
+                 </div>
+                 <button type="button" id="addEpisodeBtn" class="custom-btn bg-indigo-600 hover:bg-indigo-700 text-white">Añadir Episodio</button>
             </div>
              <div>
                 <label for="postLabels" class="block text-sm font-medium text-slate-300 mb-2">Etiquetas (separadas por comas)</label>
@@ -147,7 +173,6 @@
         <!-- Sección de publicación en Blogger -->
         <div id="bloggerSection" class="bg-slate-800 p-6 rounded-lg shadow-lg mt-8 space-y-4">
             <h2 class="text-xl font-semibold text-amber-400 border-b border-amber-500 pb-2">Publicar en Blogger (Avanzado)</h2>
-            <p class="text-sm text-slate-400">Necesitas credenciales de la API de Google. <a href="https://developers.google.com/blogger/docs/3.0/using#GettingStarted" target="_blank" rel="noopener noreferrer" class="text-sky-400 hover:underline">Lee la guía de Google aquí.</a></p>
             <div>
                 <label for="apiKey" class="block text-sm font-medium text-slate-300 mb-2">Tu Google API Key</label>
                 <input type="password" id="apiKey" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white" placeholder="Introduce tu API Key">
@@ -185,6 +210,7 @@
         let tokenClient;
         let gapiReady = false;
         let gisReady = false;
+        let episodeCounter = 0;
 
         // --- ELEMENTOS DEL DOM ---
         const generateCodeBtn = document.getElementById('generateCodeBtn');
@@ -201,18 +227,81 @@
         
         // TMDb Elements
         const saveTmdbKeyButton = document.getElementById('save_tmdb_key_button');
-        const searchMovieBtn = document.getElementById('searchMovieBtn');
+        const searchBtn = document.getElementById('searchBtn');
         const searchResultsContainer = document.getElementById('searchResultsContainer');
+
+        // Form Type Elements
+        const movieFields = document.getElementById('movieFields');
+        const seriesFields = document.getElementById('seriesFields');
+        const addEpisodeBtn = document.getElementById('addEpisodeBtn');
+        const episodesContainer = document.getElementById('episodesContainer');
+
+        // --- LÓGICA DE CAMBIO DE TIPO DE CONTENIDO ---
+        document.querySelectorAll('input[name="contentType"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'movie') {
+                    movieFields.style.display = 'block';
+                    seriesFields.style.display = 'none';
+                } else {
+                    movieFields.style.display = 'none';
+                    seriesFields.style.display = 'block';
+                    if (episodesContainer.children.length === 0) {
+                        addEpisode(); // Añadir el primer episodio si no hay ninguno
+                    }
+                }
+            });
+        });
+
+        // --- LÓGICA PARA AÑADIR EPISODIOS ---
+        function addEpisode() {
+            episodeCounter++;
+            const episodeDiv = document.createElement('div');
+            episodeDiv.classList.add('flex', 'items-center', 'gap-2');
+            episodeDiv.innerHTML = `
+                <label for="episode_${episodeCounter}" class="text-sm text-slate-400 whitespace-nowrap">Capítulo ${episodeCounter}:</label>
+                <input type="url" id="episode_${episodeCounter}" class="episode-url w-full bg-slate-600 border border-slate-500 rounded-md p-2 text-white" placeholder="URL del embed del episodio" required>
+                <button type="button" class="remove-episode-btn custom-btn bg-red-700 hover:bg-red-800 text-white text-xs px-2 py-1">-</button>
+            `;
+            episodesContainer.appendChild(episodeDiv);
+
+            episodeDiv.querySelector('.remove-episode-btn').addEventListener('click', function() {
+                episodeDiv.remove();
+                // Re-numerar los labels para que no haya saltos
+                document.querySelectorAll('#episodesContainer > div').forEach((div, index) => {
+                    div.querySelector('label').textContent = `Capítulo ${index + 1}:`;
+                });
+                episodeCounter = episodesContainer.children.length;
+            });
+        }
+        addEpisodeBtn.addEventListener('click', addEpisode);
+
 
         // --- FUNCIÓN PARA GENERAR HTML ---
         function generateHtmlContent() {
+            const type = document.querySelector('input[name="contentType"]:checked').value;
             const imageUrl = document.getElementById('imageUrl').value;
             const synopsis = document.getElementById('synopsis').value;
+            const imageAltText = document.getElementById('imageAltText').value || document.getElementById('postTitle').value || 'Póster';
+
+
+            if (!imageUrl || !synopsis) {
+                 alert('Por favor, completa los campos de Título, Imagen y Sinopsis.');
+                return null;
+            }
+
+            if (type === 'movie') {
+                return generateMovieHtml(imageUrl, synopsis, imageAltText);
+            } else {
+                return generateSeriesHtml(imageUrl, synopsis, imageAltText);
+            }
+        }
+
+        function generateMovieHtml(imageUrl, synopsis, imageAltText) {
             const server1 = document.getElementById('server1').value;
             const server2 = document.getElementById('server2').value;
             const downloadUrl = document.getElementById('downloadUrl').value;
 
-            if (!imageUrl || !synopsis || !server1 || !server2 || !downloadUrl) {
+            if (!server1 || !server2 || !downloadUrl) {
                 alert('Por favor, completa todos los campos del formulario de la película.');
                 return null;
             }
@@ -220,7 +309,7 @@
             return `
 <div class="separator" style="clear: both;">
     <a href="${imageUrl}" style="display: block; padding: 1em 0; text-align: center; ">
-        <img alt="Póster de la película" border="0" height="200" data-original-height="1484" data-original-width="1000" src="${imageUrl}" onerror="this.onerror=null;this.src='https://placehold.co/1000x1484/1c1c1e/ffffff?text=Error+al+cargar+la+imagen';">
+        <img alt="${imageAltText}" border="0" height="200" src="${imageUrl}" onerror="this.onerror=null;this.src='https://placehold.co/1000x1484/1c1c1e/ffffff?text=Error+al+cargar+la+imagen';">
     </a>
 </div>
 <div class="ctncapitulo">
@@ -234,17 +323,50 @@
                 <iframe allowfullscreen="" frameborder="0" height="350" src="${server2}" style="border-radius: 12px;" width="100%"></iframe>
             </center>
         </div>
-        <div class="separator" style="clear: both; text-align: center;">
-            <span style="text-align: left;"><span style="font-family: arial; font-size: medium;"></span></span>
-        </div>
     </div>
     <b><div style="text-align: center;"><b>&nbsp;Sinopsis:</b></div></b>
     <div class="separator" style="clear: both; text-align: center;">
         <span style="text-align: left;"><span style="font-family: arial; font-size: medium;">${synopsis}</span></span>
     </div>
-    <div class="separator" style="clear: both; text-align: center;"></div>
 </div>`;
         }
+
+        function generateSeriesHtml(imageUrl, synopsis, imageAltText) {
+            let episodesHtml = '';
+            const episodeInputs = document.querySelectorAll('.episode-url');
+            if (episodeInputs.length === 0) {
+                alert('Por favor, añade al menos un episodio.');
+                return null;
+            }
+
+            episodeInputs.forEach((input, index) => {
+                if (!input.value) return; // Saltar episodios vacíos
+                const chapterNum = index + 1;
+                episodesHtml += `
+<div class="capitulo">
+<input class="bt-capitulo" onclick="if (this.parentNode.nextSibling.childNodes[0].style.display != '') { this.parentNode.nextSibling.childNodes[0].style.display = ''; this.value = 'CAPITULO ${chapterNum}'; } else { this.parentNode.nextSibling.childNodes[0].style.display = 'none'; this.value = 'CAPITULO ${chapterNum}'; }" type="button" value="CAPITULO ${chapterNum}" />
+</div><div><div class="ctncapitulo" style="display: none;">
+<center>
+<iframe allowfullscreen="" frameborder="0" height="315" src="${input.value}" style="border-radius: 12px;" width="100%"></iframe>
+</center>
+</div></div>`;
+            });
+
+            return `
+<div class="separator" style="clear: both;"><a href="${imageUrl}" style="display: block; padding: 1em 0; text-align: center; "><img alt="${imageAltText}" border="0" height="200" src="${imageUrl}" onerror="this.onerror=null;this.src='https://placehold.co/500x750/1c1c1e/ffffff?text=Error+al+cargar+la+imagen';"/></a></div>
+<div class="ctncapitulo">
+<b><div style="text-align: center;"><b>&nbsp;Sinopsis:</b></div></b><div class="separator" style="clear: both; text-align: center;">
+<span style="text-align: left;">
+<span style="font-family: arial; font-size: medium;">
+${synopsis}
+</span>
+</span>
+</div>
+</div>
+<br />
+${episodesHtml}`;
+        }
+
 
         // --- LÓGICA DEL GENERADOR DE CÓDIGO ---
         generateCodeBtn.addEventListener('click', function() {
@@ -259,35 +381,22 @@
         // --- LÓGICA DEL BOTÓN COPIAR (MÉTODO COMPATIBLE) ---
         copyButton.addEventListener('click', function() {
             const textToCopy = outputCode.textContent;
-            
-            // Crear un textarea temporal para copiar al portapapeles
             const tempTextArea = document.createElement('textarea');
             tempTextArea.value = textToCopy;
-            // Hacerlo invisible
             tempTextArea.style.position = 'absolute';
             tempTextArea.style.left = '-9999px';
             document.body.appendChild(tempTextArea);
-            
             tempTextArea.select();
-            tempTextArea.setSelectionRange(0, 99999); // Para dispositivos móviles
-
+            tempTextArea.setSelectionRange(0, 99999);
             try {
                 const successful = document.execCommand('copy');
-                if (successful) {
-                    copyButton.textContent = '¡Copiado!';
-                } else {
-                    copyButton.textContent = 'Error';
-                }
+                copyButton.textContent = successful ? '¡Copiado!' : 'Error';
             } catch (err) {
-                console.error('Error al intentar copiar el texto: ', err);
+                console.error('Error al copiar:', err);
                 copyButton.textContent = 'Error';
             }
-
             document.body.removeChild(tempTextArea);
-
-            setTimeout(() => {
-                copyButton.textContent = 'Copiar';
-            }, 2000);
+            setTimeout(() => { copyButton.textContent = 'Copiar'; }, 2000);
         });
 
         // --- LÓGICA DE CREDENCIALES (LocalStorage) ---
@@ -295,7 +404,6 @@
             const apiKey = document.getElementById('apiKey').value;
             const clientId = document.getElementById('clientId').value;
             const blogId = document.getElementById('blogId').value;
-
             if (apiKey && clientId && blogId) {
                 localStorage.setItem('bloggerApiKey', apiKey);
                 localStorage.setItem('bloggerClientId', clientId);
@@ -310,7 +418,6 @@
             const apiKey = localStorage.getItem('bloggerApiKey');
             const clientId = localStorage.getItem('bloggerClientId');
             const blogId = localStorage.getItem('bloggerBlogId');
-
             if (apiKey && clientId && blogId) {
                 document.getElementById('apiKey').value = apiKey;
                 document.getElementById('clientId').value = clientId;
@@ -348,85 +455,105 @@
         }
 
         // --- LÓGICA DE LA API DE TMDb ---
-        async function searchMovie() {
-            const query = document.getElementById('movieSearchInput').value;
+        async function searchContent() {
+            const type = document.querySelector('input[name="contentType"]:checked').value;
+            const query = document.getElementById('searchInput').value;
             const apiKey = document.getElementById('tmdbApiKey').value;
             if (!apiKey) {
                 alert('Por favor, introduce tu API Key de TMDb primero.');
                 return;
             }
             if (!query) {
-                alert('Por favor, introduce un título de película para buscar.');
+                alert('Por favor, introduce un título para buscar.');
                 return;
             }
 
             searchResultsContainer.innerHTML = '<p class="col-span-full text-center">Buscando...</p>';
-            const url = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(query)}&language=es-ES`;
+            const url = `https://api.themoviedb.org/3/search/${type}?api_key=${apiKey}&query=${encodeURIComponent(query)}&language=es-ES`;
 
             try {
                 const response = await fetch(url);
                 const data = await response.json();
-                displaySearchResults(data.results);
+                displaySearchResults(data.results, type);
             } catch (error) {
                 console.error('Error buscando en TMDb:', error);
                 searchResultsContainer.innerHTML = '<p class="col-span-full text-center text-red-500">Error al buscar.</p>';
             }
         }
 
-        function displaySearchResults(movies) {
+        function displaySearchResults(results, type) {
             searchResultsContainer.innerHTML = '';
-            if (movies.length === 0) {
+            if (results.length === 0) {
                 searchResultsContainer.innerHTML = '<p class="col-span-full text-center">No se encontraron resultados.</p>';
                 return;
             }
 
-            movies.forEach(movie => {
-                const movieEl = document.createElement('div');
-                movieEl.classList.add('search-result-item');
+            results.forEach(item => {
+                const itemEl = document.createElement('div');
+                itemEl.classList.add('search-result-item');
                 
-                const posterPath = movie.poster_path ? `https://image.tmdb.org/t/p/w200${movie.poster_path}` : 'https://placehold.co/200x300/1c1c1e/ffffff?text=Sin+P%C3%B3ster';
+                const title = item.title || item.name;
+                const releaseDate = item.release_date || item.first_air_date;
+                const year = releaseDate ? releaseDate.substring(0, 4) : 'N/A';
+                const posterPath = item.poster_path ? `https://image.tmdb.org/t/p/w200${item.poster_path}` : 'https://placehold.co/200x300/1c1c1e/ffffff?text=Sin+P%C3%B3ster';
 
-                movieEl.innerHTML = `
-                    <img src="${posterPath}" alt="Póster de ${movie.title}">
-                    <p>${movie.title} (${movie.release_date ? movie.release_date.substring(0, 4) : 'N/A'})</p>
-                    <button class="custom-btn bg-teal-600 hover:bg-teal-700 text-white w-full" onclick="selectMovie(${movie.id})">Seleccionar</button>
+                itemEl.innerHTML = `
+                    <img src="${posterPath}" alt="Póster de ${title}">
+                    <p>${title} (${year})</p>
+                    <button class="custom-btn bg-teal-600 hover:bg-teal-700 text-white w-full" onclick="selectContent(${item.id}, '${type}')">Seleccionar</button>
                 `;
-                searchResultsContainer.appendChild(movieEl);
+                searchResultsContainer.appendChild(itemEl);
             });
         }
 
-        async function selectMovie(movieId) {
+        async function selectContent(id, type) {
             const apiKey = document.getElementById('tmdbApiKey').value;
-            const url = `https://api.themoviedb.org/3/movie/${movieId}?api_key=${apiKey}&language=es-ES`;
+            const detailsUrl = `https://api.themoviedb.org/3/${type}/${id}?api_key=${apiKey}&language=es-ES`;
+            const altTitlesUrl = `https://api.themoviedb.org/3/${type}/${id}/alternative_titles?api_key=${apiKey}`;
 
             try {
-                const response = await fetch(url);
-                const movie = await response.json();
-                
-                // Rellenar el formulario
-                const year = movie.release_date ? `(${movie.release_date.substring(0, 4)})` : '';
-                document.getElementById('postTitle').value = `${movie.title} ${year}`;
-                document.getElementById('imageUrl').value = movie.poster_path ? `https://image.tmdb.org/t/p/original${movie.poster_path}` : '';
-                document.getElementById('synopsis').value = movie.overview || 'No hay sinopsis disponible.';
-                document.getElementById('postLabels').value = movie.genres ? movie.genres.map(g => g.name).join(', ') : '';
+                // Fetch details and alternative titles in parallel
+                const [detailsResponse, altTitlesResponse] = await Promise.all([
+                    fetch(detailsUrl),
+                    fetch(altTitlesUrl)
+                ]);
 
-                searchResultsContainer.innerHTML = ''; // Limpiar resultados
-                document.getElementById('movieSearchInput').value = '';
-                alert(`'${movie.title}' seleccionada. Revisa los campos y completa los que faltan.`);
+                const item = await detailsResponse.json();
+                const altTitlesData = await altTitlesResponse.json();
+
+                // Process main details
+                const title = item.title || item.name;
+                const releaseDate = item.release_date || item.first_air_date;
+                const year = releaseDate ? `(${releaseDate.substring(0, 4)})` : '';
+                
+                document.getElementById('postTitle').value = `${title} ${year}`;
+                document.getElementById('imageUrl').value = item.poster_path ? `https://image.tmdb.org/t/p/original${item.poster_path}` : '';
+                document.getElementById('synopsis').value = item.overview || 'No hay sinopsis disponible.';
+                document.getElementById('postLabels').value = item.genres ? item.genres.map(g => g.name).join(', ') : '';
+
+                // Process alternative titles for the alt tag
+                const alternativeTitles = (altTitlesData.titles || altTitlesData.results || [])
+                    .map(t => t.title)
+                    .filter(t => t && t.trim() !== ''); // Ensure title exists
+                
+                const allTitles = [title, ...new Set(alternativeTitles)]; // Use Set to avoid duplicates
+                document.getElementById('imageAltText').value = allTitles.join(', ');
+
+
+                searchResultsContainer.innerHTML = '';
+                document.getElementById('searchInput').value = '';
+                alert(`'${title}' seleccionada. Revisa los campos y completa los que faltan.`);
 
             } catch (error) {
-                console.error('Error obteniendo detalles de la película:', error);
-                alert('No se pudieron obtener los detalles de la película.');
+                console.error('Error obteniendo detalles:', error);
+                alert('No se pudieron obtener los detalles.');
             }
         }
 
 
         // --- LÓGICA DE LA API DE BLOGGER ---
         function gapiLoaded() {
-            gapi.load('client', () => {
-                gapiReady = true;
-                maybeEnableAuthButton();
-            });
+            gapi.load('client', () => { gapiReady = true; maybeEnableAuthButton(); });
         }
         
         function gisLoaded() {
@@ -460,9 +587,7 @@
                 client_id: clientId,
                 scope: 'https://www.googleapis.com/auth/blogger',
                 callback: async (resp) => {
-                    if (resp.error !== undefined) {
-                        throw (resp);
-                    }
+                    if (resp.error !== undefined) { throw (resp); }
                     updateSigninStatus(true);
                 },
             });
@@ -547,12 +672,13 @@
         saveCredentialsButton.addEventListener('click', saveCredentials);
         clearCredentialsButton.addEventListener('click', clearCredentials);
         saveTmdbKeyButton.addEventListener('click', saveTmdbKey);
-        searchMovieBtn.addEventListener('click', searchMovie);
+        searchBtn.addEventListener('click', searchContent);
         
         // --- INICIALIZACIÓN ---
         window.addEventListener('load', () => {
             loadCredentials();
             loadTmdbKey();
+            addEpisode(); // Añadir el primer episodio por defecto
         });
         
     </script>
