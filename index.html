@@ -77,6 +77,24 @@
             font-size: 0.875rem;
             min-height: 50px;
         }
+        .tab-btn {
+            padding: 0.75rem 1rem;
+            font-weight: 500;
+            border-bottom-width: 2px;
+            cursor: pointer;
+        }
+        .tab-active {
+            border-color: #38bdf8; /* sky-400 */
+            color: #e2e8f0; /* slate-200 */
+        }
+        .tab-inactive {
+            border-color: transparent;
+            color: #94a3b8; /* slate-400 */
+        }
+        .tab-inactive:hover {
+            border-color: #475569; /* slate-600 */
+            color: #cbd5e1; /* slate-300 */
+        }
     </style>
 </head>
 <body class="bg-slate-900 text-white p-4 sm:p-6 md:p-8">
@@ -87,112 +105,130 @@
             <p class="text-slate-400 mt-2">Crea código para tus entradas de películas o series.</p>
         </header>
 
-        <!-- Selector de Tipo -->
-        <div class="mb-8 bg-slate-800 p-4 rounded-lg flex justify-center gap-4">
-            <label class="font-medium text-slate-300">Tipo de Contenido:</label>
-            <div>
-                <input type="radio" id="typeMovie" name="contentType" value="movie" checked>
-                <label for="typeMovie">Película</label>
-            </div>
-            <div>
-                <input type="radio" id="typeSeries" name="contentType" value="tv">
-                <label for="typeSeries">Serie</label>
-            </div>
+        <!-- Pestañas de Navegación -->
+        <div class="mb-4 border-b border-slate-700">
+            <nav class="flex -mb-px" aria-label="Tabs">
+                <button id="tabGenerator" class="tab-btn tab-active">Generador</button>
+                <button id="tabConfig" class="tab-btn tab-inactive">Configuración de APIs</button>
+            </nav>
         </div>
 
-        <!-- Sección de búsqueda de TMDb -->
-        <div id="tmdbSearchSection" class="bg-slate-800 p-6 rounded-lg shadow-lg mb-8 space-y-4">
-            <h2 class="text-xl font-semibold text-teal-400 border-b border-teal-500 pb-2">Buscador (TMDb)</h2>
-            <div>
-                <label for="tmdbApiKey" class="block text-sm font-medium text-slate-300 mb-2">Tu API Key de TMDb</label>
-                <div class="flex gap-2">
-                    <input type="password" id="tmdbApiKey" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white" placeholder="Introduce tu API Key de TMDb">
-                    <button id="save_tmdb_key_button" class="custom-btn bg-teal-600 hover:bg-teal-700 text-white">Guardar</button>
+        <!-- Panel de Generador -->
+        <div id="panelGenerator">
+            <!-- Selector de Tipo -->
+            <div class="mb-8 bg-slate-800 p-4 rounded-lg flex justify-center gap-4">
+                <label class="font-medium text-slate-300">Tipo de Contenido:</label>
+                <div>
+                    <input type="radio" id="typeMovie" name="contentType" value="movie" checked>
+                    <label for="typeMovie">Película</label>
+                </div>
+                <div>
+                    <input type="radio" id="typeSeries" name="contentType" value="tv">
+                    <label for="typeSeries">Serie</label>
                 </div>
             </div>
-            <div>
-                <label for="searchInput" class="block text-sm font-medium text-slate-300 mb-2">Buscar por Título</label>
-                <div class="flex gap-2">
-                    <input type="text" id="searchInput" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white" placeholder="Ej: The Matrix / The Simpsons">
-                    <button id="searchBtn" class="custom-btn bg-sky-600 hover:bg-sky-700 text-white">Buscar</button>
+
+            <!-- Sección de búsqueda de TMDb -->
+            <div id="tmdbSearchSection" class="bg-slate-800 p-6 rounded-lg shadow-lg mb-8 space-y-4">
+                <h2 class="text-xl font-semibold text-teal-400 border-b border-teal-500 pb-2">Buscador (TMDb)</h2>
+                <div>
+                    <label for="searchInput" class="block text-sm font-medium text-slate-300 mb-2">Buscar por Título</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="searchInput" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white" placeholder="Ej: The Matrix / The Simpsons">
+                        <button id="searchBtn" class="custom-btn bg-sky-600 hover:bg-sky-700 text-white">Buscar</button>
+                    </div>
                 </div>
+                <div id="searchResultsContainer" class="mt-4"></div>
             </div>
-            <div id="searchResultsContainer" class="mt-4"></div>
+
+            <!-- Formulario para ingresar los datos -->
+            <form id="contentForm" class="bg-slate-800 p-6 rounded-lg shadow-lg space-y-6">
+                <div>
+                    <label for="postTitle" class="block text-sm font-medium text-slate-300 mb-2">Título de la Entrada</label>
+                    <input type="text" id="postTitle" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white focus:ring-2 focus:ring-sky-500" placeholder="Ej: Nombre de la Película (Año)" required>
+                </div>
+                <div>
+                    <label for="imageUrl" class="block text-sm font-medium text-slate-300 mb-2">URL de la Imagen (Póster)</label>
+                    <input type="url" id="imageUrl" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white focus:ring-2 focus:ring-sky-500" placeholder="https://ejemplo.com/poster.jpg" required>
+                </div>
+                <div>
+                    <label for="imageAltText" class="block text-sm font-medium text-slate-300 mb-2">Texto Alternativo para la Imagen (SEO)</label>
+                    <textarea id="imageAltText" rows="2" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white focus:ring-2 focus:ring-sky-500" placeholder="Títulos alternativos para optimizar la búsqueda..."></textarea>
+                </div>
+                <div>
+                    <label for="synopsis" class="block text-sm font-medium text-slate-300 mb-2">Sinopsis</label>
+                    <textarea id="synopsis" rows="4" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white focus:ring-2 focus:ring-sky-500" placeholder="Escribe aquí la sinopsis..." required></textarea>
+                </div>
+                 <div id="movieFields">
+                    <div>
+                        <label for="server1" class="block text-sm font-medium text-slate-300 mb-2">Embed del Servidor 1</label>
+                        <input type="url" id="server1" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white focus:ring-2 focus:ring-sky-500" placeholder="https://servidor1.com/embed/..." required>
+                    </div>
+                    <div>
+                        <label for="server2" class="block text-sm font-medium text-slate-300 mb-2">Embed del Servidor 2</label>
+                        <input type="url" id="server2" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white focus:ring-2 focus:ring-sky-500" placeholder="https://servidor2.com/embed/..." required>
+                    </div>
+                    <div>
+                        <label for="downloadUrl" class="block text-sm font-medium text-slate-300 mb-2">URL de Descarga</label>
+                        <input type="url" id="downloadUrl" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white focus:ring-2 focus:ring-sky-500" placeholder="https://ejemplo.com/pelicula.mp4" required>
+                    </div>
+                </div>
+                <div id="seriesFields" class="hidden space-y-4">
+                     <h3 class="text-lg font-semibold text-slate-300 border-b border-slate-600 pb-2">Episodios</h3>
+                     <div id="episodesContainer" class="space-y-3">
+                         <!-- Los campos de episodios se añadirán aquí -->
+                     </div>
+                     <button type="button" id="addEpisodeBtn" class="custom-btn bg-indigo-600 hover:bg-indigo-700 text-white">Añadir Episodio</button>
+                </div>
+                 <div>
+                    <label for="postLabels" class="block text-sm font-medium text-slate-300 mb-2">Etiquetas (separadas por comas)</label>
+                    <input type="text" id="postLabels" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white focus:ring-2 focus:ring-sky-500" placeholder="Ej: Acción, Aventura, Estreno">
+                </div>
+                <div class="flex justify-end gap-4">
+                    <button type="button" id="publish_button" class="custom-btn bg-amber-600 hover:bg-amber-700 text-white" disabled>Publicar en Blogger</button>
+                    <button type="button" id="generateCodeBtn" class="bg-sky-600 hover:bg-sky-700 text-white custom-btn">
+                        Generar Código HTML
+                    </button>
+                </div>
+            </form>
         </div>
 
-        <!-- Formulario para ingresar los datos -->
-        <form id="contentForm" class="bg-slate-800 p-6 rounded-lg shadow-lg space-y-6">
-            <div>
-                <label for="postTitle" class="block text-sm font-medium text-slate-300 mb-2">Título de la Entrada</label>
-                <input type="text" id="postTitle" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white focus:ring-2 focus:ring-sky-500" placeholder="Ej: Nombre de la Película (Año)" required>
-            </div>
-            <div>
-                <label for="imageUrl" class="block text-sm font-medium text-slate-300 mb-2">URL de la Imagen (Póster)</label>
-                <input type="url" id="imageUrl" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white focus:ring-2 focus:ring-sky-500" placeholder="https://ejemplo.com/poster.jpg" required>
-            </div>
-            <div>
-                <label for="imageAltText" class="block text-sm font-medium text-slate-300 mb-2">Texto Alternativo para la Imagen (SEO)</label>
-                <textarea id="imageAltText" rows="2" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white focus:ring-2 focus:ring-sky-500" placeholder="Títulos alternativos para optimizar la búsqueda..."></textarea>
-            </div>
-            <div>
-                <label for="synopsis" class="block text-sm font-medium text-slate-300 mb-2">Sinopsis</label>
-                <textarea id="synopsis" rows="4" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white focus:ring-2 focus:ring-sky-500" placeholder="Escribe aquí la sinopsis..." required></textarea>
-            </div>
-             <div id="movieFields">
+        <!-- Panel de Configuración -->
+        <div id="panelConfig" class="hidden">
+            <!-- Sección de configuración de TMDb -->
+            <div class="bg-slate-800 p-6 rounded-lg shadow-lg mb-8 space-y-4">
+                <h2 class="text-xl font-semibold text-teal-400 border-b border-teal-500 pb-2">Configuración de TMDb</h2>
                 <div>
-                    <label for="server1" class="block text-sm font-medium text-slate-300 mb-2">Embed del Servidor 1</label>
-                    <input type="url" id="server1" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white focus:ring-2 focus:ring-sky-500" placeholder="https://servidor1.com/embed/..." required>
-                </div>
-                <div>
-                    <label for="server2" class="block text-sm font-medium text-slate-300 mb-2">Embed del Servidor 2</label>
-                    <input type="url" id="server2" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white focus:ring-2 focus:ring-sky-500" placeholder="https://servidor2.com/embed/..." required>
-                </div>
-                <div>
-                    <label for="downloadUrl" class="block text-sm font-medium text-slate-300 mb-2">URL de Descarga</label>
-                    <input type="url" id="downloadUrl" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white focus:ring-2 focus:ring-sky-500" placeholder="https://ejemplo.com/pelicula.mp4" required>
+                    <label for="tmdbApiKey" class="block text-sm font-medium text-slate-300 mb-2">Tu API Key de TMDb</label>
+                    <div class="flex gap-2">
+                        <input type="password" id="tmdbApiKey" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white" placeholder="Introduce tu API Key de TMDb">
+                        <button id="save_tmdb_key_button" class="custom-btn bg-teal-600 hover:bg-teal-700 text-white">Guardar</button>
+                    </div>
                 </div>
             </div>
-            <div id="seriesFields" class="hidden space-y-4">
-                 <h3 class="text-lg font-semibold text-slate-300 border-b border-slate-600 pb-2">Episodios</h3>
-                 <div id="episodesContainer" class="space-y-3">
-                     <!-- Los campos de episodios se añadirán aquí -->
-                 </div>
-                 <button type="button" id="addEpisodeBtn" class="custom-btn bg-indigo-600 hover:bg-indigo-700 text-white">Añadir Episodio</button>
+            <!-- Sección de publicación en Blogger -->
+            <div id="bloggerSection" class="bg-slate-800 p-6 rounded-lg shadow-lg mt-8 space-y-4">
+                <h2 class="text-xl font-semibold text-amber-400 border-b border-amber-500 pb-2">Configuración de Blogger</h2>
+                <div>
+                    <label for="apiKey" class="block text-sm font-medium text-slate-300 mb-2">Tu Google API Key</label>
+                    <input type="password" id="apiKey" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white" placeholder="Introduce tu API Key">
+                </div>
+                <div>
+                    <label for="clientId" class="block text-sm font-medium text-slate-300 mb-2">Tu Google Client ID</label>
+                    <input type="password" id="clientId" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white" placeholder="Introduce tu Client ID">
+                </div>
+                <div>
+                    <label for="blogId" class="block text-sm font-medium text-slate-300 mb-2">ID de tu Blog de Blogger</label>
+                    <input type="text" id="blogId" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white" placeholder="El número ID de tu blog">
+                </div>
+                <div class="flex flex-wrap items-center justify-end gap-2 pt-4">
+                     <button id="save_credentials_button" class="custom-btn bg-green-600 hover:bg-green-700 text-white">Guardar Credenciales</button>
+                     <button id="clear_credentials_button" class="custom-btn bg-red-600 hover:bg-red-700 text-white">Borrar Credenciales</button>
+                     <button id="authorize_button" class="custom-btn bg-blue-600 hover:bg-blue-700 text-white" disabled>Autorizar</button>
+                     <button id="signout_button" class="custom-btn bg-gray-600 hover:bg-gray-700 text-white" style="display: none;">Cerrar Sesión</button>
+                </div>
+                <div id="statusMessage" class="text-slate-400 text-sm h-4 mt-2 text-right"></div>
             </div>
-             <div>
-                <label for="postLabels" class="block text-sm font-medium text-slate-300 mb-2">Etiquetas (separadas por comas)</label>
-                <input type="text" id="postLabels" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white focus:ring-2 focus:ring-sky-500" placeholder="Ej: Acción, Aventura, Estreno">
-            </div>
-            <div class="flex justify-end">
-                <button type="button" id="generateCodeBtn" class="bg-sky-600 hover:bg-sky-700 text-white custom-btn">
-                    Generar Código HTML
-                </button>
-            </div>
-        </form>
-
-        <!-- Sección de publicación en Blogger -->
-        <div id="bloggerSection" class="bg-slate-800 p-6 rounded-lg shadow-lg mt-8 space-y-4">
-            <h2 class="text-xl font-semibold text-amber-400 border-b border-amber-500 pb-2">Publicar en Blogger (Avanzado)</h2>
-            <div>
-                <label for="apiKey" class="block text-sm font-medium text-slate-300 mb-2">Tu Google API Key</label>
-                <input type="password" id="apiKey" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white" placeholder="Introduce tu API Key">
-            </div>
-            <div>
-                <label for="clientId" class="block text-sm font-medium text-slate-300 mb-2">Tu Google Client ID</label>
-                <input type="password" id="clientId" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white" placeholder="Introduce tu Client ID">
-            </div>
-            <div>
-                <label for="blogId" class="block text-sm font-medium text-slate-300 mb-2">ID de tu Blog de Blogger</label>
-                <input type="text" id="blogId" class="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-white" placeholder="El número ID de tu blog">
-            </div>
-            <div class="flex flex-wrap items-center justify-end gap-2 pt-4">
-                 <button id="save_credentials_button" class="custom-btn bg-green-600 hover:bg-green-700 text-white">Guardar Credenciales</button>
-                 <button id="clear_credentials_button" class="custom-btn bg-red-600 hover:bg-red-700 text-white">Borrar Credenciales</button>
-                 <button id="authorize_button" class="custom-btn bg-blue-600 hover:bg-blue-700 text-white" disabled>Autorizar</button>
-                 <button id="signout_button" class="custom-btn bg-gray-600 hover:bg-gray-700 text-white" style="display: none;">Cerrar Sesión</button>
-                 <button id="publish_button" class="custom-btn bg-amber-600 hover:bg-amber-700 text-white" disabled>Publicar en Blogger</button>
-            </div>
-            <div id="statusMessage" class="text-slate-400 text-sm h-4 mt-2 text-right"></div>
         </div>
 
         <!-- Contenedor para el CÓDIGO generado -->
@@ -235,6 +271,34 @@
         const seriesFields = document.getElementById('seriesFields');
         const addEpisodeBtn = document.getElementById('addEpisodeBtn');
         const episodesContainer = document.getElementById('episodesContainer');
+
+        // Tab Elements
+        const tabGenerator = document.getElementById('tabGenerator');
+        const tabConfig = document.getElementById('tabConfig');
+        const panelGenerator = document.getElementById('panelGenerator');
+        const panelConfig = document.getElementById('panelConfig');
+
+        // --- LÓGICA DE PESTAÑAS ---
+        function switchTab(activeTab) {
+            if (activeTab === 'generator') {
+                panelGenerator.style.display = 'block';
+                panelConfig.style.display = 'none';
+                tabGenerator.classList.add('tab-active');
+                tabGenerator.classList.remove('tab-inactive');
+                tabConfig.classList.add('tab-inactive');
+                tabConfig.classList.remove('tab-active');
+            } else {
+                panelGenerator.style.display = 'none';
+                panelConfig.style.display = 'block';
+                tabConfig.classList.add('tab-active');
+                tabConfig.classList.remove('tab-inactive');
+                tabGenerator.classList.add('tab-inactive');
+                tabGenerator.classList.remove('tab-active');
+            }
+        }
+        tabGenerator.addEventListener('click', () => switchTab('generator'));
+        tabConfig.addEventListener('click', () => switchTab('config'));
+
 
         // --- LÓGICA DE CAMBIO DE TIPO DE CONTENIDO ---
         document.querySelectorAll('input[name="contentType"]').forEach(radio => {
@@ -460,7 +524,8 @@ ${episodesHtml}`;
             const query = document.getElementById('searchInput').value;
             const apiKey = document.getElementById('tmdbApiKey').value;
             if (!apiKey) {
-                alert('Por favor, introduce tu API Key de TMDb primero.');
+                alert('Por favor, introduce tu API Key de TMDb en la pestaña de Configuración.');
+                switchTab('config');
                 return;
             }
             if (!query) {
